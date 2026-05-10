@@ -35,7 +35,7 @@
     .card-body { font-size: 15px; line-height: 1.75; color: #1a1a1a; }
     .api-notice { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #fffbeb; border: 0.5px solid #fcd34d; border-radius: 8px; font-size: 13px; color: #92400e; line-height: 1.6; }
     .api-notice strong { display: block; margin-bottom: 4px; }
-    footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 0.5px solid #e0e0e0; font-size: 13px; color: #999; }
+    footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 0.5px solid #e0e0e0; font-size: 13px; color #999; }
   </style>
 </head>
 <body>
@@ -77,14 +77,14 @@
 
   <div class="api-notice">
     <strong>Note for reviewers</strong>
-    This tool requires an Anthropic API key to run locally. See the README for setup instructions. Example outputs for 5 dental research topics are available in the <code>/examples</code> folder.
+    This tool is powered by Google Gemini API. See the README for setup instructions. Example outputs for 5 dental research topics are available in the <code>/examples</code> folder.
   </div>
 
   <footer>Built by Sina · Dental Literature Digest · 2026</footer>
 </div>
 
 <script>
-const API_KEY = "YOUR_ANTHROPIC_API_KEY_HERE";
+const API_KEY = "AIzaSyBUT6Coe6yYa3N-R3DQ6For7eyXJAItbDs";
 
 function loadExample() {
   document.getElementById('abstract-input').value = `Background: Artificial intelligence (AI) has been increasingly applied in dentistry for diagnostic purposes. This systematic review evaluated the accuracy of AI algorithms in detecting dental caries on radiographic images compared to experienced clinicians.\n\nMethods: A comprehensive search of PubMed, Scopus, and Web of Science was conducted. Studies comparing AI-based caries detection with human expert evaluation on bitewing or periapical radiographs were included. Sensitivity, specificity, and AUC values were extracted.\n\nResults: Fourteen studies met the inclusion criteria. AI models demonstrated a pooled sensitivity of 0.82 and specificity of 0.79 for caries detection. Three high-quality studies reported AUC values above 0.90. Performance was comparable to general dentists but slightly below experienced radiologists. Convolutional neural networks (CNNs) outperformed other model types.\n\nConclusions: AI demonstrates promising accuracy for radiographic caries detection and may serve as a reliable second opinion tool. Standardization of datasets and external validation remain necessary before clinical implementation.`;
@@ -116,23 +116,16 @@ Abstract:
 ${abstract}`;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{ role: "user", content: prompt }]
+        contents: [{ parts: [{ text: prompt }] }]
       })
     });
 
     const data = await response.json();
-    const text = data.content[0].text.replace(/```json|```/g, '').trim();
+    const text = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(text);
 
     document.getElementById('finding').textContent = parsed.finding;
@@ -143,7 +136,7 @@ ${abstract}`;
     results.style.display = 'flex';
     status.textContent = '';
   } catch (err) {
-    status.textContent = 'Something went wrong. Please check your API key in the source code.';
+    status.textContent = 'Something went wrong. Please try again.';
     console.error(err);
   }
 
